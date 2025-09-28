@@ -1,18 +1,8 @@
-
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const [feed, setFeed] = useState<Item[] | null>(null);
-
-useEffect(() => {
-  fetch("/feed.json")
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => setFeed((data?.items as Item[]) || []))
-    .catch(() => setFeed(DEMO_FEED)); // fallback to demo on error
-}, []);
-
-/** ---------------- Demo data (replace later with your API) ---------------- */
+/** ---------------- Types + Demo ---------------- */
 type Item = {
   id: string;
   title: string;
@@ -21,7 +11,7 @@ type Item = {
   summary?: string;
   topic?: "politics" | "economy" | "tech" | "sports" | "general";
   region?: string;
-  published_at: number; // epoch ms
+  published_at: number;
 };
 
 const DEMO_FEED: Item[] = [
@@ -52,22 +42,48 @@ export default function Page() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 4;
 
-  const { items, hasMore } = useMemo(() => {
-  const rows = (feed ?? DEMO_FEED)
-    .filter((x) => !q || x.title.toLowerCase().includes(q.toLowerCase()))
-    .filter((x) => !topic || x.topic === (topic as Item["topic"]))
-    .filter((x) => !source || x.source === source)
-    .sort((a, b) => b.published_at - a.published_at);
-  const slice = rows.slice(0, page * PAGE_SIZE);
-  return { items: slice, hasMore: slice.length < rows.length };
-}, [q, topic, source, page, feed]);
+  const [feed, setFeed] = useState<Item[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
+  // Safe fetch: if /api/feed fails or doesn’t exist, fall back to DEMO_FEED
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/feed", { cache: "no-store" });
+        if (!res.ok) throw new Error("no api");
+        const data = await res.json();
+        if (!mounted) return;
+        setFeed((data?.items as Item[]) || DEMO_FEED);
+      } catch {
+        if (!mounted) return;
+        setFeed(DEMO_FEED);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const rows = useMemo(() => {
+    const base = feed ?? DEMO_FEED;
+    return base
+      .filter((x) => !q || x.title.toLowerCase().includes(q.toLowerCase()))
+      .filter((x) => !topic || x.topic === (topic as Item["topic"]))
+      .filter((x) => !source || x.source === source)
+      .sort((a, b) => b.published_at - a.published_at);
+  }, [feed, q, topic, source]);
+
+  const { items, hasMore } = useMemo(() => {
+    const slice = rows.slice(0, page * PAGE_SIZE);
+    return { items: slice, hasMore: slice.length < rows.length };
+  }, [rows, page]);
 
   const allSources = useMemo(() => {
-    const s = Array.from(new Set(DEMO_FEED.map((x) => x.source)));
+    const s = Array.from(new Set((feed ?? DEMO_FEED).map((x) => x.source)));
     s.sort();
     return s;
-  }, []);
+  }, [feed]);
 
   return (
     <main>
@@ -75,7 +91,9 @@ export default function Page() {
         {/* Header */}
         <header>
           <div className="brand">
-            <img src="/logo.svg" alt="NeonAfriq" className="logoImg" />
+            {/* If you added /public/logo.svg, use img. Otherwise keep the gradient block */}
+            {/* <img src="/logo.svg" alt="NeonAfriq" className="logoImg" /> */}
+            <div className="logo" />
             <div className="title">
               <h1>NeonAfriq</h1>
               <div className="sub">Text-only stream • Links back to original sources</div>
@@ -101,7 +119,6 @@ export default function Page() {
           </div>
         </div>
 
-        {/* FEED */}
         {tab === "feed" && (
           <>
             <h2 className="page">Latest Stories</h2>
@@ -129,6 +146,9 @@ export default function Page() {
               </div>
             </div>
 
+            {/* Loading state (so we don’t render blank) */}
+            {loading && <div style={{opacity:.8, color:"#c8d1c7", padding:"6px 2px"}}>Loading…</div>}
+
             <div className="list">
               {items.map((it) => (
                 <a key={it.id} className="card" href={it.url} target="_blank" rel="noopener nofollow">
@@ -146,9 +166,13 @@ export default function Page() {
             </div>
 
             {/* Sponsor slot */}
-            <div style={{ marginTop: 14 }}>
-              <div className="sponsor">Sponsored — <b>Your brand here</b>. Reach diaspora readers with a clean, text-first placement.</div>
-            </div>
+            {!loading && (
+              <div style={{ marginTop: 14 }}>
+                <div className="sponsor">
+                  Sponsored — <b>Your brand here</b>. Reach diaspora readers with a clean, text-first placement.
+                </div>
+              </div>
+            )}
 
             {hasMore && (
               <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
@@ -158,7 +182,6 @@ export default function Page() {
           </>
         )}
 
-        {/* SUBMIT */}
         {tab === "submit" && (
           <>
             <h2 className="page">Submit a Story</h2>
@@ -187,7 +210,7 @@ export default function Page() {
         <footer>© {new Date().getFullYear()} NeonAfriq • Built for diaspora readers • Always links back to source.</footer>
       </div>
 
-      {/* Styles */}
+      {/* GLOBAL STYLES */}
       <style jsx global>{`
         :root{
           --bg:#05060b; --panel:#0b0f1a; --muted:#c8d1c7; --text:#f4f1e1;
@@ -206,6 +229,7 @@ export default function Page() {
         a { color: inherit; text-decoration: none; }
       `}</style>
 
+      {/* COMPONENT STYLES */}
       <style jsx>{`
         .wrap{ max-width:1100px; margin:0 auto; padding:24px; }
 
@@ -284,8 +308,6 @@ export default function Page() {
           padding:12px 14px; border-radius:12px; font-weight:600;
         }
         .cta:hover{ box-shadow:0 0 0 2px #00ff9028; }
-        
-        .logoImg{ width:60px; height:60px; border-radius:16px; box-shadow:0 0 26px #00ff9040, 0 0 48px #00ff901f; }
 
         footer{ margin:30px 0 8px; color:#9aa7b5; font-size:13px; text-align:center; }
       `}</style>
