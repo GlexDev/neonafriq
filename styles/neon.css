@@ -1,0 +1,6 @@
+/* Neon helpers */
+.hover\:shadow-neon:hover { box-shadow: 0 0 15px #00f0ff, 0 0 30px #00f0ff, 0 0 45px #00f0ff; }
+.border-neonBlue { border-color: #00f0ff; }
+.text-neonBlue { color: #00f0ff; }
+.bg-neonBlue { background-color: #00f0ff; }
+.gradient-neon { background: radial-gradient(60% 60% at 50% 0%, rgba(0,240,255,.15) 0%, transparent 60%), radial-gradient(40% 40% at 90% 10%, rgba(255,47,211,.12) 0%, transparent 70%); }
