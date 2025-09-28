@@ -65,7 +65,7 @@ export default function Page() {
         {/* Header */}
         <header>
           <div className="brand">
-            <div className="logo" />
+            <img src="/logo.svg" alt="NeonAfriq" className="logoImg" />
             <div className="title">
               <h1>NeonAfriq</h1>
               <div className="sub">Text-only stream • Links back to original sources</div>
@@ -274,6 +274,8 @@ export default function Page() {
           padding:12px 14px; border-radius:12px; font-weight:600;
         }
         .cta:hover{ box-shadow:0 0 0 2px #00ff9028; }
+        
+        .logoImg{ width:60px; height:60px; border-radius:16px; box-shadow:0 0 26px #00ff9040, 0 0 48px #00ff901f; }
 
         footer{ margin:30px 0 8px; color:#9aa7b5; font-size:13px; text-align:center; }
       `}</style>
