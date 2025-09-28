@@ -1,7 +1,16 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+
+const [feed, setFeed] = useState<Item[] | null>(null);
+
+useEffect(() => {
+  fetch("/feed.json")
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => setFeed((data?.items as Item[]) || []))
+    .catch(() => setFeed(DEMO_FEED)); // fallback to demo on error
+}, []);
 
 /** ---------------- Demo data (replace later with your API) ---------------- */
 type Item = {
