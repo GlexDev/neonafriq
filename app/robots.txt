@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://neonafriq.example/sitemap.xml
