@@ -53,14 +53,15 @@ export default function Page() {
   const PAGE_SIZE = 4;
 
   const { items, hasMore } = useMemo(() => {
-    const rows = DEMO_FEED
-      .filter((x) => !q || x.title.toLowerCase().includes(q.toLowerCase()))
-      .filter((x) => !topic || x.topic === (topic as Item["topic"]))
-      .filter((x) => !source || x.source === source)
-      .sort((a, b) => b.published_at - a.published_at);
-    const slice = rows.slice(0, page * PAGE_SIZE);
-    return { items: slice, hasMore: slice.length < rows.length };
-  }, [q, topic, source, page]);
+  const rows = (feed ?? DEMO_FEED)
+    .filter((x) => !q || x.title.toLowerCase().includes(q.toLowerCase()))
+    .filter((x) => !topic || x.topic === (topic as Item["topic"]))
+    .filter((x) => !source || x.source === source)
+    .sort((a, b) => b.published_at - a.published_at);
+  const slice = rows.slice(0, page * PAGE_SIZE);
+  return { items: slice, hasMore: slice.length < rows.length };
+}, [q, topic, source, page, feed]);
+
 
   const allSources = useMemo(() => {
     const s = Array.from(new Set(DEMO_FEED.map((x) => x.source)));
