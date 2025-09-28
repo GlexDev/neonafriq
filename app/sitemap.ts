@@ -1,10 +1,10 @@
-import { MetadataRoute } from 'next'
+export const runtime = "edge";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://neonafriq.example'
+export default function sitemap() {
+  const base = "https://neonafriq.pages.dev";
   return [
-    { url: base + '/', lastModified: new Date() },
-    { url: base + '/read', lastModified: new Date() },
-    { url: base + '/submit', lastModified: new Date() },
-  ]
+    { url: `${base}/`, lastModified: new Date() },
+    { url: `${base}/read`, lastModified: new Date() },
+    { url: `${base}/submit`, lastModified: new Date() },
+  ];
 }
